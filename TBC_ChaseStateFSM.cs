@@ -24,7 +24,7 @@ public class ChaseState : BaseState
     
     public override Type StateUpdate()
     {
-        if ((smartTank.enemyTank != null) && (Vector3.Distance(smartTank.transform.position, smartTank.enemyTank.transform.position) < 30f))
+        if (Vector3.Distance(smartTank.transform.position, smartTank.enemyTank.transform.position) < 30f)
         {
             return typeof(AttackState);
         }

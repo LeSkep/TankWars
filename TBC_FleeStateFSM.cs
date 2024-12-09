@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 
-public class AttackState : BaseState
+public class FleeState : BaseState
 {
     private SmartTank smartTank;
-    float time = 0;
-    // Start is called before the first frame update
-    public AttackState(SmartTank smartTank)
+
+    public FleeState(SmartTank smartTank)
     {
         this.smartTank = smartTank;
     }
@@ -16,7 +15,6 @@ public class AttackState : BaseState
     public override Type StateEnter()
     {
         return null;
-
     }
 
     public override Type StateExit()
@@ -26,19 +24,13 @@ public class AttackState : BaseState
 
     public override Type StateUpdate()
     {
-        time += Time.deltaTime;
-        if (time > 2)
+        if (smartTank.TankCurrentHealth > 60 || smartTank.TankCurrentAmmo > 6 || smartTank.TankCurrentFuel > 60)
         {
-            time = 0;
             return typeof(RoamState);
-        }
-        else if (smartTank.TankCurrentHealth < 50 || smartTank.TankCurrentAmmo < 4 || smartTank.TankCurrentFuel < 30)
-        {
-            return typeof(FleeState);
         }
         else
         {
-            smartTank.AttackTarget();
+            smartTank.Flee();
             return null;
         }
     }

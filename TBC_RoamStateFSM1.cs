@@ -24,7 +24,7 @@ public class RoamState : BaseState
 
     public override Type StateUpdate()
     {
-        if (Vector3.Distance(smartTank.transform.position, smartTank.enemyTank.transform.position) < 30f)
+        if ((smartTank.enemyTank != null) && (Vector3.Distance(smartTank.transform.position, smartTank.enemyTank.transform.position) < 30f))
         {
             return typeof(ChaseState);
         }
