@@ -28,6 +28,10 @@ public class RoamState : BaseState
         {
             return typeof(ChaseState);
         }
+        else if (Vector3.Distance(smartTank.transform.position, smartTank.enemyBase.transform.position) < 30f)
+        {
+            return typeof(AttackBaseState);
+        }
         else
         {
             smartTank.RandomRoam();

@@ -48,6 +48,7 @@ public class SmartTank : AITank
         states.Add(typeof(ChaseState), new ChaseState(this));
         states.Add(typeof(AttackState), new AttackState(this));
         states.Add(typeof(FleeState), new FleeState(this));
+        states.Add(typeof(AttackBaseState), new AttackBaseState(this));
 
         GetComponent<StateMachine>().SetStates(states);
     }
@@ -83,10 +84,7 @@ public class SmartTank : AITank
             GenerateNewRandomWorldPoint();
             t = 0;
         }
-    }
-
-    public void Flee()
-    {
+        
         if (consumablesFound.Count > 0)
         {
             //get the first consumable from the list.
@@ -99,6 +97,22 @@ public class SmartTank : AITank
                 t = 0;
             }
         }
+    }
+
+    public void Flee()
+    {
+        if (consumablesFound.Count > 0)
+        {
+            //get the first consumable from the list.
+            consumable = consumablesFound.First().Key;
+            FollowPathToWorldPoint(consumable, 1f, heuristicMode);
+            t += Time.deltaTime;
+            if (t > 15)
+            {
+                GenerateNewRandomWorldPoint();
+                t = 0;
+            }
+        }
         else
         {
             enemyTank = null;
@@ -106,6 +120,39 @@ public class SmartTank : AITank
             enemyBase = null;
             FollowPathToRandomWorldPoint(1f, heuristicMode);
         }
+    }
+
+    public void AttackBase()
+    {
+
+        if (enemyBase != null)
+        {
+            //go close to it and fire
+            if (Vector3.Distance(transform.position, enemyBase.transform.position) < 25f)
+            {
+                TurretFireAtPoint(enemyBase);
+            }
+            else
+            {
+                FollowPathToWorldPoint(enemyBase, 1f, heuristicMode);
+
+            }
+        }
+        else
+        {
+            //searching
+            enemyTank = null;
+            consumable = null;
+            enemyBase = null;
+            FollowPathToRandomWorldPoint(1f, heuristicMode);
+            t += Time.deltaTime;
+            if (t > 10)
+            {
+                GenerateNewRandomWorldPoint();
+                t = 0;
+            }
+        }
+        
     }
 
     /// <summary>
@@ -122,7 +169,13 @@ public class SmartTank : AITank
         consumablesFound = VisibleConsumables;
         enemyBasesFound = VisibleEnemyBases;
 
-        if (enemyTanksFound.Count > 0 && enemyTanksFound.First().Key != null)
+        if (enemyBasesFound.Count > 0)
+        {
+            //if base if found
+            enemyBase = enemyBasesFound.First().Key;
+        }
+
+            if (enemyTanksFound.Count > 0 && enemyTanksFound.First().Key != null)
         {
             enemyTank = enemyTanksFound.First().Key;
         }
