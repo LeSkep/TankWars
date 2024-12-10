@@ -6,7 +6,7 @@ using UnityEngine;
 public class AttackBaseState : BaseState
 {
     private SmartTank smartTank;
-    float time = 0;
+    
     // Start is called before the first frame update
     public AttackBaseState(SmartTank smartTank)
     {

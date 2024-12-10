@@ -28,9 +28,13 @@ public class RoamState : BaseState
         {
             return typeof(ChaseState);
         }
-        else if (Vector3.Distance(smartTank.transform.position, smartTank.enemyBase.transform.position) < 30f)
+        else if ((smartTank.enemyBase != null) && (Vector3.Distance(smartTank.transform.position, smartTank.enemyBase.transform.position) < 30f))
         {
             return typeof(AttackBaseState);
+        }
+        else if((smartTank.TankCurrentFuel < 30) /*&& (smartTank.hasWaited == false)*/)
+        {
+            return typeof(WaitState);
         }
         else
         {

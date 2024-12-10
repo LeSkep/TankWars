@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 
-public class FleeState : BaseState
+public class WaitState : BaseState
 {
     private SmartTank smartTank;
+    float t;
 
-    public FleeState(SmartTank smartTank)
+    public WaitState(SmartTank smartTank)
     {
         this.smartTank = smartTank;
     }
@@ -24,18 +25,18 @@ public class FleeState : BaseState
 
     public override Type StateUpdate()
     {
-        if (smartTank.TankCurrentHealth < 50 /*|| smartTank.TankCurrentFuel < 50*/)
-        {
-            smartTank.Flee();
-            return null;
-        }
-        else if ((smartTank.TankCurrentFuel < 30) /*&& (smartTank.hasWaited != true)*/)
-        {
-            return typeof(WaitState);
-        }
-        else
-        {
+       t += Time.deltaTime;
+
+       if (t > 20)
+       {
+            smartTank.hasWaited = true;
             return typeof(RoamState);
+            
         }
+       else
+       {
+            smartTank.Wait();
+            return null;
+       }
     }
 }

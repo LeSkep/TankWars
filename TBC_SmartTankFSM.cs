@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static AStar;
+using JetBrains.Annotations;
 
 /// <summary>
 /// Class <c>DumbTank</c> is an example class used to demonstrate how to use the functions available from the <c>AITank</c> base class. 
@@ -30,12 +31,24 @@ public class SmartTank : AITank
     float t;    /*!< <c>t</c> stores timer value */
     public HeuristicMode heuristicMode; /*!< <c>heuristicMode</c> Which heuristic used for find path. */
 
+    private GameObject turretGun;
+    public float constantSpeed = 5f;
+    public bool hasWaited = false;
+
+    /*private AITank AITank;
+
+    public SmartTank(AITank AITank)
+    {
+        this.AITank = AITank;
+    }*/
+
     /// <summary>
     ///WARNING, do not use void <c>Start()</c> function, use this <c>AITankStart()</c> function instead if you want to use Start method from Monobehaviour.
     ///Use this function to initialise your tank variables etc.
     /// </summary>
     public override void AITankStart()
     {
+        turretGun = transform.Find("Model").transform.Find("Turret").gameObject;
         InitialiseStateMachine();
     }
 
@@ -49,6 +62,7 @@ public class SmartTank : AITank
         states.Add(typeof(AttackState), new AttackState(this));
         states.Add(typeof(FleeState), new FleeState(this));
         states.Add(typeof(AttackBaseState), new AttackBaseState(this));
+        states.Add(typeof(WaitState), new WaitState(this));
 
         GetComponent<StateMachine>().SetStates(states);
     }
@@ -155,6 +169,27 @@ public class SmartTank : AITank
         
     }
 
+    public void Wait()
+    {
+       
+        t += Time.deltaTime;
+        TankStop();
+        turretGun.transform.Rotate(0f, 0f, constantSpeed * Time.deltaTime);
+        if (t > 20)
+        {
+            GenerateNewRandomWorldPoint();
+            t = 0;
+        }
+        else
+        {
+            enemyTank = null;
+            consumable = null;
+            enemyBase = null;
+            FollowPathToRandomWorldPoint(1f, heuristicMode);
+        }
+        
+    }
+
     /// <summary>
     ///WARNING, do not use void <c>Update()</c> function, use this <c>AITankUpdate()</c> function instead if you want to use Start method from Monobehaviour.
     ///Function checks to see what is currently visible in the tank sensor and updates the Founds list. <code>First().Key</code> is used to get the first
@@ -175,7 +210,7 @@ public class SmartTank : AITank
             enemyBase = enemyBasesFound.First().Key;
         }
 
-            if (enemyTanksFound.Count > 0 && enemyTanksFound.First().Key != null)
+        if (enemyTanksFound.Count > 0 && enemyTanksFound.First().Key != null)
         {
             enemyTank = enemyTanksFound.First().Key;
         }
