@@ -15,12 +15,14 @@ public class FleeStateFSMRBS : BaseState
     public override Type StateEnter()
     {
         smartTank.stats["fleeState"] = true;
+
         return null;
     }
 
     public override Type StateExit()
     {
         smartTank.stats["fleeState"] = false;
+
         return null;
     }
 

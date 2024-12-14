@@ -15,12 +15,15 @@ public class RoamStateFSMRBS : BaseState
     public override Type StateEnter()
     {
         smartTank.stats["roamState"] = true;
+
         return null;
+       
     }
 
     public override Type StateExit()
     {
         smartTank.stats["roamState"] = false;
+
         return null;
     }
 

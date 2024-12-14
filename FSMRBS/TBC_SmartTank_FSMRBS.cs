@@ -48,10 +48,10 @@ public class SmartTankFSMRBS : AITank
     /// </summary>
     public override void AITankStart()
     {
-        turretGun = transform.Find("Model").transform.Find("Turret").gameObject;
-        InitialiseStateMachine();
+        //turretGun = transform.Find("Model").transform.Find("Turret").gameObject;
         InitialiseStats();
         InitialiseRules();
+        InitialiseStateMachine();
     }
 
     private void InitialiseStats()
@@ -69,7 +69,7 @@ public class SmartTankFSMRBS : AITank
     {
         rules.AddRule(new RuleFSMRBS("attackState", "lowHealth", typeof(FleeStateFSMRBS), RuleFSMRBS.Predicate.And));
         rules.AddRule(new RuleFSMRBS("chaseState", "lowHealth", typeof(FleeStateFSMRBS), RuleFSMRBS.Predicate.And));
-        rules.AddRule(new RuleFSMRBS("roamState", "targetSpotted", typeof(ChaseStateFSMRBS), RuleFSMRBS.Predicate.And));
+        rules.AddRule(new RuleFSMRBS("targetSpotted", "roamState", typeof(ChaseStateFSMRBS), RuleFSMRBS.Predicate.And));
         rules.AddRule(new RuleFSMRBS("roamState", "targetSpotted", typeof(RoamStateFSMRBS), RuleFSMRBS.Predicate.nAnd));
         rules.AddRule(new RuleFSMRBS("chaseState", "targetReached", typeof(AttackStateFSMRBS), RuleFSMRBS.Predicate.And));
     }
@@ -85,13 +85,11 @@ public class SmartTankFSMRBS : AITank
         //states.Add(typeof(AttackBaseState), new AttackBaseState(this));
         //states.Add(typeof(WaitState), new WaitState(this));
 
-        GetComponent<StateMachine>().SetStates(states);
+        GetComponent<StateMachineFSMRBS>().SetStates(states);
     }
 
     public void ChaseTarget()
     {
-
-        Debug.Log("hello");
         if (enemyTank != null)
         {
             //Follow target
@@ -224,8 +222,6 @@ public class SmartTankFSMRBS : AITank
 
     void UpdateFacts()
     {
-        //Debug.Log(stats["targetSpotted"]);
-        //Debug.Log(stats["targetReached"]);
         if (enemyTank != null)
         {
             stats["targetSpotted"] = Vector3.Distance(transform.position, enemyTank.transform.position) < 30f ? true : false;
@@ -239,33 +235,33 @@ public class SmartTankFSMRBS : AITank
     }
 
 
-    public void CheckTargetSpotted()
-    {
-        Debug.Log(stats["targetSpotted"]);
-        if ((enemyTank != null) && (Vector3.Distance(transform.position, enemyTank.transform.position) < 30f))
-        {
-            stats["targetSpotted"] = true;
-        }
-        else
-        {
-            stats["targetSpotted"] = false;
-        }
-
-    }
-
-    public void CheckTargetReached()
-    {
-
-        if ((enemyTank != null) && (Vector3.Distance(transform.position, enemyTank.transform.position) < 25f))
-        {
-            stats["targetReached"] = true;
-        }
-        else
-        {
-            stats["targetReached"] = false;
-        }
-
-    }
+    //public void CheckTargetSpotted()
+    //{
+    //    Debug.Log(stats["targetSpotted"]);
+    //    if ((enemyTank != null) && (Vector3.Distance(transform.position, enemyTank.transform.position) < 30f))
+    //    {
+    //        stats["targetSpotted"] = true;
+    //    }
+    //    else
+    //    {
+    //        stats["targetSpotted"] = false;
+    //    }
+    //
+    //}
+    //
+    //public void CheckTargetReached()
+    //{
+    //
+    //    if ((enemyTank != null) && (Vector3.Distance(transform.position, enemyTank.transform.position) < 25f))
+    //    {
+    //        stats["targetReached"] = true;
+    //    }
+    //    else
+    //    {
+    //        stats["targetReached"] = false;
+    //    }
+    //
+    //}
 
     /// <summary>
     ///WARNING, do not use void <c>Update()</c> function, use this <c>AITankUpdate()</c> function instead if you want to use Start method from Monobehaviour.
@@ -275,10 +271,7 @@ public class SmartTankFSMRBS : AITank
     public override void AITankUpdate()
     {
         //Update all currently visible.
-        //CheckTargetSpotted();
-        //CheckTargetReached();
         
-        //Debug.Log(enemyTank);
         UpdateFacts();
 
         enemyTanksFound = VisibleEnemyTanks;

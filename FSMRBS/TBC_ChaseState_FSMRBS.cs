@@ -15,12 +15,14 @@ public class ChaseStateFSMRBS : BaseState
     public override Type StateEnter()
     {
         smartTank.stats["chaseState"] = true;
+
         return null;
     }
 
     public override Type StateExit()
     {
         smartTank.stats["chaseState"] = false;
+
         return null;
     }
 

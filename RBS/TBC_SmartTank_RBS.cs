@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.TestTools;
 using static AStar;
 
 /// <summary>
@@ -31,6 +32,7 @@ public class SmartTank_RBS : AITank
 
     float t;    /*!< <c>t</c> stores timer value */
     float attackDistance = 25f;
+    //public bool lowHealth;
     public HeuristicMode heuristicMode; /*!< <c>heuristicMode</c> Which heuristic used for find path. */
 
     /// <summary>
@@ -48,7 +50,7 @@ public class SmartTank_RBS : AITank
        // facts.Add("baseReached", false);
         facts.Add("targetReached", false);
         facts.Add("lowHealth", false);
-        facts.Add("goodHealth", false);
+        //facts.Add("goodHealth", false);
         facts.Add("followTarget", false);
         facts.Add("targetSpotted", false);
         facts.Add("lowAmmo", false);
@@ -62,19 +64,25 @@ public class SmartTank_RBS : AITank
 
     void InitialiseRules()
     {
-        rules.AddRule(new Rule("lowHealth", "lowAmmo", "flee", Rule.Predicate.Or));
-        rules.AddRule(new Rule("lowHealth", "canAttack", "flee", Rule.Predicate.And));
-        rules.AddRule(new Rule("lowAmmo", "canAttack", "flee", Rule.Predicate.And));
-        rules.AddRule(new Rule("lowHealth", "attack", "flee", Rule.Predicate.And));
-        rules.AddRule(new Rule("flee", "attack", "roam", Rule.Predicate.nAnd));
-        rules.AddRule(new Rule("targetSpotted", "followTarget", "roam", Rule.Predicate.nAnd));
-        rules.AddRule(new Rule("targetSpotted", "goodHealth", "followTarget", Rule.Predicate.And));
+        rules.AddRule(new Rule("attack", "lowHealth", "flee", Rule.Predicate.And));
+        rules.AddRule(new Rule("followTarget", "lowHealth", "flee", Rule.Predicate.And));
+        rules.AddRule(new Rule("targetSpotted", "roam", "followTarget", Rule.Predicate.And));
+        rules.AddRule(new Rule("roam", "targetSpotted", "roam", Rule.Predicate.nAnd));
         rules.AddRule(new Rule("lowAmmo", "lowHealth", "canAttack", Rule.Predicate.nAnd));
-        rules.AddRule(new Rule("lowAmmo", "lowFuel", "canAttack", Rule.Predicate.nAnd));
+        rules.AddRule(new Rule("lowHealth", "lowFuel", "canAttack", Rule.Predicate.nAnd));
         rules.AddRule(new Rule("targetReached", "canAttack", "attack", Rule.Predicate.And));
        // rules.AddRule(new Rule("baseReached", "canAttack", "attackBase", Rule.Predicate.And));
 
-    } 
+    }
+
+    /*private void InitialiseRules()
+    {
+        rules.AddRule(new Rule("attack", "lowHealth", "flee", Rule.Predicate.And));
+        rules.AddRule(new Rule("followTarget", "lowHealth", "flee", Rule.Predicate.And));
+        rules.AddRule(new Rule("targetSpotted", "roam", "followTarget", Rule.Predicate.And));
+        rules.AddRule(new Rule("roam", "targetSpotted", "roam", Rule.Predicate.nAnd));
+        rules.AddRule(new Rule("followTarget", "targetReached", "attack", Rule.Predicate.And));
+    }*/
 
     public void RandomRoam()
     {
@@ -115,16 +123,21 @@ public class SmartTank_RBS : AITank
 
     public void AttackTarget()
     {
+        Debug.Log(facts["attack"]);
         if (Vector3.Distance(transform.position, enemyTank.transform.position) < 25f)
         {
             //get closer to target, and fire
             TurretFireAtPoint(enemyTank);
         }
-        
+        else if (facts["lowHealth"] == true)
+        {
+            facts["attack"] = false;
+        }
     }
 
     public void Flee()
     {
+        Debug.Log("hello");
         if (consumablesFound.Count > 0)
         {
             //get the first consumable from the list.
@@ -136,6 +149,15 @@ public class SmartTank_RBS : AITank
                 GenerateNewRandomWorldPoint();
                 t = 0;
             }
+            
+        }
+        else
+        {
+            enemyTank = null;
+            consumable = null;
+            enemyBase = null;
+            GenerateNewRandomWorldPoint();
+            FollowPathToRandomWorldPoint(1f, heuristicMode);
         }
     }
 
@@ -163,8 +185,7 @@ public class SmartTank_RBS : AITank
         if(enemyTank != null) 
         {
             facts["targetSpotted"] = Vector3.Distance(transform.position, enemyTank.transform.position) < 30f ? true : false;
-            facts["targetReached"] = Vector3.Distance(transform.position, enemyTank.transform.position) < attackDistance ?
-            true : false;
+            facts["targetReached"] = Vector3.Distance(transform.position, enemyTank.transform.position) < attackDistance ? true : false;
         }
         //if(enemyBase != null)
         //{
@@ -172,9 +193,9 @@ public class SmartTank_RBS : AITank
         //    true : false;
         //}
 
-
+        //Debug.Log(facts["lowHealth"]);
         facts["lowHealth"] = TankCurrentHealth < 50 ? true : false;
-        facts["goodHealth"] = TankCurrentHealth > 50 ? true : false;
+        //facts["goodHealth"] = TankCurrentHealth > 50 ? true : false;
         facts["lowAmmo"] = TankCurrentAmmo < 4 ? true : false;
         facts["lowFuel"] = TankCurrentFuel < 50 ? true : false;
     }
@@ -276,11 +297,15 @@ public class SmartTank_RBS : AITank
             enemyBase = enemyBasesFound.First().Key;
         }
 
+        Debug.Log(GetComponent<StateMachineFSMRBS>().CurrentState);
+
         UpdateFacts();
-        ShouldFollowTarget();
-        ShouldAttack();
         ShouldFlee();
+        ShouldFollowTarget();
         ShouldRoam();
+        ShouldAttack();
+        
+        
         //ShouldAttackBase();
 
         

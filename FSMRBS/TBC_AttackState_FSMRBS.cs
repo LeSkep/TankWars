@@ -16,6 +16,7 @@ public class AttackStateFSMRBS : BaseState
     public override Type StateEnter()
     {
         smartTank.stats["attackState"] = true;
+
         return null;
 
     }
@@ -23,7 +24,9 @@ public class AttackStateFSMRBS : BaseState
     public override Type StateExit()
     {
         smartTank.stats["attackState"] = false;
+
         time = 0;
+
         return null;
     }
 
