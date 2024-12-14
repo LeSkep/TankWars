@@ -90,6 +90,8 @@ public class SmartTankFSMRBS : AITank
 
     public void ChaseTarget()
     {
+
+        Debug.Log("hello");
         if (enemyTank != null)
         {
             //Follow target
@@ -110,9 +112,10 @@ public class SmartTankFSMRBS : AITank
 
     public void RandomRoam()
     {
+        
         //searching
-        enemyTank = null;
-        consumable = null;
+        //enemyTank = null;
+        //consumable = null;
         enemyBase = null;
         FollowPathToRandomWorldPoint(1f, heuristicMode);
         t += Time.deltaTime;
@@ -219,9 +222,26 @@ public class SmartTankFSMRBS : AITank
     //    CheckTargetReached();
     //}
 
+    void UpdateFacts()
+    {
+        //Debug.Log(stats["targetSpotted"]);
+        //Debug.Log(stats["targetReached"]);
+        if (enemyTank != null)
+        {
+            stats["targetSpotted"] = Vector3.Distance(transform.position, enemyTank.transform.position) < 30f ? true : false;
+            stats["targetReached"] = Vector3.Distance(transform.position, enemyTank.transform.position) < 25f ? true : false;
+        }
+       
+
+        stats["lowHealth"] = TankCurrentHealth < 50 ? true : false;
+        //stats["lowAmmo"] = TankCurrentAmmo < 4 ? true : false;
+        //stats["lowFuel"] = TankCurrentFuel < 50 ? true : false;
+    }
+
 
     public void CheckTargetSpotted()
     {
+        Debug.Log(stats["targetSpotted"]);
         if ((enemyTank != null) && (Vector3.Distance(transform.position, enemyTank.transform.position) < 30f))
         {
             stats["targetSpotted"] = true;
@@ -235,6 +255,7 @@ public class SmartTankFSMRBS : AITank
 
     public void CheckTargetReached()
     {
+
         if ((enemyTank != null) && (Vector3.Distance(transform.position, enemyTank.transform.position) < 25f))
         {
             stats["targetReached"] = true;
@@ -243,6 +264,7 @@ public class SmartTankFSMRBS : AITank
         {
             stats["targetReached"] = false;
         }
+
     }
 
     /// <summary>
@@ -253,12 +275,21 @@ public class SmartTankFSMRBS : AITank
     public override void AITankUpdate()
     {
         //Update all currently visible.
-        CheckTargetSpotted();
-        CheckTargetReached();
+        //CheckTargetSpotted();
+        //CheckTargetReached();
+        
+        //Debug.Log(enemyTank);
+        UpdateFacts();
 
         enemyTanksFound = VisibleEnemyTanks;
         consumablesFound = VisibleConsumables;
         enemyBasesFound = VisibleEnemyBases;
+
+        if (enemyTanksFound.Count > 0 && enemyTanksFound.First().Key != null)
+        {
+            enemyTank = enemyTanksFound.First().Key;
+        }
+
 
         if (enemyBasesFound.Count > 0)
         {
@@ -266,10 +297,7 @@ public class SmartTankFSMRBS : AITank
             enemyBase = enemyBasesFound.First().Key;
         }
 
-        if (enemyTanksFound.Count > 0 && enemyTanksFound.First().Key != null)
-        {
-            enemyTank = enemyTanksFound.First().Key;
-        }
+        
 
     
     }

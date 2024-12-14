@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RulesFSMRBS 
+public class RulesFSMRBS  
 {
     public void AddRule(RuleFSMRBS rule)
     {
