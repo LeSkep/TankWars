@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class Rule 
+public class RuleFSMRBS 
 {
     public string antecedentA;
     public string antecedentB;
-    public string consequent;
+    public Type consequent;
     public Predicate compare;
     public enum Predicate
     {And , Or, nAnd};
 
-    public Rule(string antecedentA, string antecedentB, string consequent, Predicate compare)
+    public RuleFSMRBS(string antecedentA, string antecedentB, Type consequent, Predicate compare)
     {
         this.antecedentA = antecedentA;
         this.antecedentB = antecedentB;
@@ -20,7 +20,7 @@ public class Rule
         this.compare = compare;
     }
 
-    public Dictionary<string, bool> CheckRule(Dictionary<string, bool> facts)
+    public Type CheckRule(Dictionary<string, bool> facts)
     {
         bool antecedentABool = facts[antecedentA];
         bool antecedentBBool = facts[antecedentB];
@@ -30,36 +30,35 @@ public class Rule
             case Predicate.And :
                 if (antecedentABool && antecedentBBool)
                 {
-                    facts[consequent] = true;
+                    return consequent;
                 }
                 else
                 {
-                    facts[consequent] = false;
+                    return null;
                 }
-                return facts;
+                
 
             case Predicate.Or :
                 if (antecedentABool || antecedentBBool)
                 {
-                    facts[consequent] = true;
+                    return consequent;
                 }
                 else
                 {
-                    facts[consequent] = false;
+                    return null;
                 }
-                return facts;
+                
 
             case Predicate.nAnd :
                 if(!antecedentABool && !antecedentBBool)
                 {
-                    facts[consequent] = true;
+                    return consequent;
                 }
                 else
                 {
-                    facts[consequent] = false;
+                    return null;
                 }
-                return facts;
-
+                
             default:
                 return null;
         }

@@ -14,11 +14,13 @@ public class RoamState : BaseState
 
     public override Type StateEnter()
     {
+        
         return null;
     }
 
     public override Type StateExit()
     {
+        
         return null;
     }
 
@@ -32,7 +34,7 @@ public class RoamState : BaseState
         {
             return typeof(AttackBaseState);
         }
-        else if((smartTank.TankCurrentFuel < 30) /*&& (smartTank.hasWaited == false)*/)
+        else if ((smartTank.TankCurrentFuel < 30) /*&& (smartTank.hasWaited == false)*/)
         {
             return typeof(WaitState);
         }
