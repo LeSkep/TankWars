@@ -14,8 +14,10 @@ public class SmartTank_RBS : AITank
     public Dictionary<GameObject, float> enemyTanksFound = new Dictionary<GameObject, float>();     /*!< <c>enemyTanksFound</c> stores all tanks that are visible within the tanks sensor. */
     public Dictionary<GameObject, float> consumablesFound = new Dictionary<GameObject, float>();    /*!< <c>consumablesFound</c> stores all consumables that are visible within the tanks sensor. */
     public Dictionary<GameObject, float> enemyBasesFound = new Dictionary<GameObject, float>();     /*!< <c>enemyBasesFound</c> stores all enemybases that are visible within the tanks sensor. */
-
+    
+    // New dictionary called facts that stores strings and booleans
     public Dictionary<string, bool> facts = new Dictionary<string, bool>();
+    // New variable called rules with access to the Rules class
     Rules rules = new Rules();
 
     public GameObject enemyTank;        /*!< <c>enemyTank</c> stores a reference to a target enemy tank. 
@@ -41,16 +43,14 @@ public class SmartTank_RBS : AITank
     /// </summary>
     public override void AITankStart()
     {
-        InitialiseFacts();
-        InitialiseRules();
+        InitialiseFacts(); // Calls InitialiseFacts function to Initialise all the facts
+        InitialiseRules(); // Calls InitialiseRules function to Initialise all the rules
     }
-
+    // Initialises facts and sets all to false on called
     void InitialiseFacts()
     {
-       // facts.Add("baseReached", false);
         facts.Add("targetReached", false);
         facts.Add("lowHealth", false);
-        //facts.Add("goodHealth", false);
         facts.Add("followTarget", false);
         facts.Add("targetSpotted", false);
         facts.Add("lowAmmo", false);
@@ -59,9 +59,10 @@ public class SmartTank_RBS : AITank
         facts.Add("attack", false);
         facts.Add("canAttack", false);
         facts.Add("roam", false);
-       // facts.Add("attackBase", false);
+       
     }
-
+    // Initialises rules 
+    // Each rule has to antecedents and one consequent, the consequent is only reached if once or both of the antecedents is true based on the Predicate
     void InitialiseRules()
     {
         rules.AddRule(new Rule("attack", "lowHealth", "flee", Rule.Predicate.And));
@@ -71,33 +72,24 @@ public class SmartTank_RBS : AITank
         rules.AddRule(new Rule("lowAmmo", "lowHealth", "canAttack", Rule.Predicate.nAnd));
         rules.AddRule(new Rule("lowHealth", "lowFuel", "canAttack", Rule.Predicate.nAnd));
         rules.AddRule(new Rule("targetReached", "canAttack", "attack", Rule.Predicate.And));
-       // rules.AddRule(new Rule("baseReached", "canAttack", "attackBase", Rule.Predicate.And));
-
     }
-
-    /*private void InitialiseRules()
-    {
-        rules.AddRule(new Rule("attack", "lowHealth", "flee", Rule.Predicate.And));
-        rules.AddRule(new Rule("followTarget", "lowHealth", "flee", Rule.Predicate.And));
-        rules.AddRule(new Rule("targetSpotted", "roam", "followTarget", Rule.Predicate.And));
-        rules.AddRule(new Rule("roam", "targetSpotted", "roam", Rule.Predicate.nAnd));
-        rules.AddRule(new Rule("followTarget", "targetReached", "attack", Rule.Predicate.And));
-    }*/
-
+    // Tank roam funciton
     public void RandomRoam()
     {
         //searching
-        enemyTank = null;
-        consumable = null;
-        enemyBase = null;
+        enemyTank = null; // Resets the enemyTank variable
+        consumable = null; // Resets the consumable variable
+        enemyBase = null; // Resets the enemyBase variable
+        // Follow path
         FollowPathToRandomWorldPoint(1f, heuristicMode);
         t += Time.deltaTime;
-        if (t > 10)
+        if (t > 10) // If time is greater than 10
         {
+            // Follow new path
             GenerateNewRandomWorldPoint();
             t = 0;
         }
-
+        // Look for consumables
         if (consumablesFound.Count > 0)
         {
             //get the first consumable from the list.
@@ -111,33 +103,32 @@ public class SmartTank_RBS : AITank
             }
         }
     }
-
+    // Chase function
     public void ChaseTarget()
     {
-        if (enemyTank != null)
+        if (enemyTank != null) // If enemyTank stores a value
         {
             //Follow target
             FollowPathToWorldPoint(enemyTank, 1f, heuristicMode);
         }
     }
-
+    // Attack target
     public void AttackTarget()
     {
-        Debug.Log(facts["attack"]);
-        if (Vector3.Distance(transform.position, enemyTank.transform.position) < 25f)
+        if (Vector3.Distance(transform.position, enemyTank.transform.position) < 25f) // If in range with the enemy tank
         {
             //get closer to target, and fire
             TurretFireAtPoint(enemyTank);
         }
-        else if (facts["lowHealth"] == true)
+        else if (facts["lowHealth"] == true) // If the lowHealth stat is true then it sets the attack stat to false to prevent it from attacking on low health
         {
             facts["attack"] = false;
         }
     }
-
+    // Flee function
     public void Flee()
     {
-        Debug.Log("hello");
+        // Looks for consumables
         if (consumablesFound.Count > 0)
         {
             //get the first consumable from the list.
@@ -151,19 +142,18 @@ public class SmartTank_RBS : AITank
             }
             
         }
-        else
+        else // If it can't see any consumables then it generates a new path and follows it
         {
             enemyTank = null;
             consumable = null;
             enemyBase = null;
-            GenerateNewRandomWorldPoint();
             FollowPathToRandomWorldPoint(1f, heuristicMode);
         }
     }
-
+    // Attack base function -- Not in use
     public void AttackBase()
     {
-
+        // If the enemyBase variable stores a value
         if (enemyBase != null)
         {
             //go close to it and fire
@@ -171,7 +161,7 @@ public class SmartTank_RBS : AITank
             {
                 TurretFireAtPoint(enemyBase);
             }
-            else
+            else // If the condition isn't met then follow a random path
             {
                 FollowPathToWorldPoint(enemyBase, 1f, heuristicMode);
 
@@ -179,27 +169,24 @@ public class SmartTank_RBS : AITank
         }
     }
 
-
+    // Function that checks if stats are true or false based conditions
     void UpdateFacts()
     {
-        if(enemyTank != null) 
+        if(enemyTank != null) // If enemyTank is not null
         {
+            // If enemyTank is within a 30 unit range then targetspotted = true, else false
             facts["targetSpotted"] = Vector3.Distance(transform.position, enemyTank.transform.position) < 30f ? true : false;
+            // If enemyTank is attackDistance then targetreached = true, else false
             facts["targetReached"] = Vector3.Distance(transform.position, enemyTank.transform.position) < attackDistance ? true : false;
         }
-        //if(enemyBase != null)
-        //{
-        //    facts["baseReached"] = Vector3.Distance(transform.position, enemyBase.transform.position) < attackDistance ?
-        //    true : false;
-        //}
+       
 
-        //Debug.Log(facts["lowHealth"]);
+       // Checks to see if lowHealth, lowAmmo and lowFuel are true or false 
         facts["lowHealth"] = TankCurrentHealth < 50 ? true : false;
-        //facts["goodHealth"] = TankCurrentHealth > 50 ? true : false;
         facts["lowAmmo"] = TankCurrentAmmo < 4 ? true : false;
         facts["lowFuel"] = TankCurrentFuel < 50 ? true : false;
     }
-
+    // Function to see if the tank should flee based on whether the flee fact is true
     void ShouldFlee()
     {
         foreach (var item in rules.GetRules)
@@ -214,7 +201,7 @@ public class SmartTank_RBS : AITank
             Flee();
         }
     }
-
+    // Function to see if the tank should attack based on whether the attack fact is true
     void ShouldAttack()
     {
         foreach (var item in rules.GetRules)
@@ -229,7 +216,7 @@ public class SmartTank_RBS : AITank
             AttackTarget();
         }
     }
-
+    // Function to see if the tank should follow the enemy tank based on whether the followTarget fact is true
     void ShouldFollowTarget()
     {
         foreach (var item in rules.GetRules)
@@ -244,7 +231,7 @@ public class SmartTank_RBS : AITank
             ChaseTarget();
         }    
     }
-
+    // Function to see if the tank should roam based on whether the roam fact is true
     void ShouldRoam()
     {
         foreach (var item in rules.GetRules)
@@ -259,7 +246,7 @@ public class SmartTank_RBS : AITank
             RandomRoam();
         }
     }
-
+    // Function to see if the tank should attack a base, based on whether the attackBase fact is true -- Not in use
     void ShouldAttackBase()
     {
         foreach (var item in rules.GetRules)
@@ -283,22 +270,24 @@ public class SmartTank_RBS : AITank
     public override void AITankUpdate()
     {
         //Update all currently visible.
-        enemyTanksFound = VisibleEnemyTanks;
-        consumablesFound = VisibleConsumables;
-        enemyBasesFound = VisibleEnemyBases;
+        enemyTanksFound = VisibleEnemyTanks; // Stores the VisibleEnemyTanks dictionary in the enemyTanksFound variable   
+        consumablesFound = VisibleConsumables; // Stores the VisibleConsumables dictionary in the consumablesFound variable
+        enemyBasesFound = VisibleEnemyBases; // Stores the VisibleEnemyBases dictionary in the enemyBasesFound variable
 
+        // Constantly checking to see if an enemy tanks is found and then stores it
         if (enemyTanksFound.Count > 0 && enemyTanksFound.First().Key != null)
         {
+            // if tank is found
             enemyTank = enemyTanksFound.First().Key;
         }
-
+        // Constantly checking to see if an enemy base is found and then stores it
         if (enemyBasesFound.Count > 0 && enemyBasesFound.First().Key != null)
         {
             enemyBase = enemyBasesFound.First().Key;
         }
 
-        Debug.Log(GetComponent<StateMachineFSMRBS>().CurrentState);
-
+        
+        // Constantly updating these functions
         UpdateFacts();
         ShouldFlee();
         ShouldFollowTarget();
@@ -306,94 +295,7 @@ public class SmartTank_RBS : AITank
         ShouldAttack();
         
         
-        //ShouldAttackBase();
-
-        
-
-        //if low health or ammo, go searching
-        /*if (TankCurrentHealth < 30 || TankCurrentAmmo < 4)
-        {
-            //if there is more than 0 consumables visible
-            if (consumablesFound.Count > 0)
-            {
-                //get the first consumable from the list.
-                consumable = consumablesFound.First().Key;
-                FollowPathToWorldPoint(consumable, 1f, heuristicMode);
-                t += Time.deltaTime;
-                if (t > 10)
-                {
-                    GenerateNewRandomWorldPoint();
-                    t = 0;
-                }
-            }
-            else
-            {
-                enemyTank = null;
-                consumable = null;
-                enemyBase = null;
-                FollowPathToRandomWorldPoint(1f, heuristicMode);
-            }
-        }
-        else
-        {
-            //if there is a enemy tank found
-            if (enemyTanksFound.Count > 0 && enemyTanksFound.First().Key != null)
-            {
-                enemyTank = enemyTanksFound.First().Key;
-                if (enemyTank != null)
-                {
-                    //get closer to target, and fire
-                    if (Vector3.Distance(transform.position, enemyTank.transform.position) < attackDistance)
-                    {
-                        TurretFireAtPoint(enemyTank);
-                    }
-                    //else follow
-                    else
-                    {
-                        FollowPathToWorldPoint(enemyTank, 1f, heuristicMode);
-                    }
-                }
-            }
-            else if (consumablesFound.Count > 0)
-            {
-                //if consumables are found, go to it.
-                consumable = consumablesFound.First().Key;
-                FollowPathToWorldPoint(consumable, 1f, heuristicMode);
-            }
-            else if (enemyBasesFound.Count > 0)
-            {
-                //if base if found
-                enemyBase = enemyBasesFound.First().Key;
-                if (enemyBase != null)
-                {
-                    //go close to it and fire
-                    if (Vector3.Distance(transform.position, enemyBase.transform.position) < attackDistance)
-                    {
-                        TurretFireAtPoint(enemyBase);
-                    }
-                    else
-                    {
-                        FollowPathToWorldPoint(enemyBase, 1f, heuristicMode);
-
-                    }
-                }
-            }
-            else
-            {
-                //searching
-                enemyTank = null;
-                consumable = null;
-                enemyBase = null;
-                FollowPathToRandomWorldPoint(1f, heuristicMode);
-                t += Time.deltaTime;
-                if (t > 10)
-                {
-                    GenerateNewRandomWorldPoint();
-                    t = 0;
-                }
-            }
-            
-        }*/
+       
     }
 
     /// <summary>

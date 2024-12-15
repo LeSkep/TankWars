@@ -31,10 +31,10 @@ public class SmartTank : AITank
     float t;    /*!< <c>t</c> stores timer value */
     public HeuristicMode heuristicMode; /*!< <c>heuristicMode</c> Which heuristic used for find path. */
 
-    private GameObject turretGun;
-    public float constantSpeed = 5f;
+    private GameObject turretGun; // Creating a game object variable named turretGun
+    public float constantSpeed = 5f; // Stores a constant speed value for turret rotation speed
 
-    public bool lowFuel;
+    public bool lowFuel; // Boolean for checking low fuel
 
 
     /*private AITank AITank;
@@ -50,14 +50,14 @@ public class SmartTank : AITank
     /// </summary>
     public override void AITankStart()
     {
-        turretGun = transform.Find("Model").transform.Find("Turret").gameObject;
-        InitialiseStateMachine();
+        turretGun = transform.Find("Model").transform.Find("Turret").gameObject; // Find the tanks turret gameObject and storing it's value 
+        InitialiseStateMachine(); // Calling the InitialiseStateMachine to initialise the state machine
     }
 
-
+    // Function intialise all states
     private void InitialiseStateMachine()
     {
-        Dictionary<Type, BaseState> states = new Dictionary<Type, BaseState>();
+        Dictionary<Type, BaseState> states = new Dictionary<Type, BaseState>(); // Creating a dictionary to store the states
 
         states.Add(typeof(RoamState), new RoamState(this));
         states.Add(typeof(ChaseState), new ChaseState(this));
@@ -66,12 +66,12 @@ public class SmartTank : AITank
         states.Add(typeof(AttackBaseState), new AttackBaseState(this));
         states.Add(typeof(WaitState), new WaitState(this));
 
-        GetComponent<StateMachine>().SetStates(states);
+        GetComponent<StateMachine>().SetStates(states); // Getting a function from the stateMachine script to set the states in the dictionary
     }
-
+    // A function to check for low fuel 
     public void LowFuel()
     {
-        if (TankCurrentFuel < 5)
+        if (TankCurrentFuel < 5) // If fuel is less than five then lowFuel = true, else it's false
         {
             lowFuel = true;
         }
@@ -80,39 +80,41 @@ public class SmartTank : AITank
             lowFuel = false;
         }
     }
-
+    // Chase target function
     public void ChaseTarget()
     {
-        if (enemyTank != null)
+        if (enemyTank != null) // If enemyTank stores a value
         {
             //Follow target
-            FollowPathToWorldPoint(enemyTank, 1f, heuristicMode);
+            FollowPathToWorldPoint(enemyTank, 1f, heuristicMode); 
         }
     }
-
+    // Attack target
     public void AttackTarget()
     {
-        if (Vector3.Distance(transform.position, enemyTank.transform.position) < 25f)
+        if (Vector3.Distance(transform.position, enemyTank.transform.position) < 25f) // If in range with the enemy tank
         {
             //get closer to target, and fire
             TurretFireAtPoint(enemyTank);
         }
     }
-
+    // Tank roam function
     public void RandomRoam()
     {
         //searching
-        enemyTank = null;
-        consumable = null;
-        enemyBase = null;
+        enemyTank = null; // Resets the enemyTank variable
+        consumable = null; // Resets the consumable variable
+        enemyBase = null; // Resets the enemyBase variable
+        // Follow path
         FollowPathToRandomWorldPoint(1f, heuristicMode);
         t += Time.deltaTime;
-        if (t > 10)
+        if (t > 10) // If time is greater than 10
         {
+            // Follow new path
             GenerateNewRandomWorldPoint();
             t = 0;
         }
-
+        // Look for consumables
         if (consumablesFound.Count > 0)
         {
             //get the first consumable from the list.
@@ -126,9 +128,10 @@ public class SmartTank : AITank
             }
         }
     }
-
+    // Flee function
     public void Flee()
     {
+        // Looks for consumables
         if (consumablesFound.Count > 0)
         {
             //get the first consumable from the list.
@@ -141,18 +144,18 @@ public class SmartTank : AITank
                 t = 0;
             }
         }
-        else
+        else // If it can't see any consumables then it generates a new path and follows it
         {
-            enemyTank = null;
-            consumable = null;
-            enemyBase = null;
+            enemyTank = null; // Resets the enemyTank variable
+            consumable = null; // Resets the consumable variable
+            enemyBase = null; // Resets the enemyBase variable
             FollowPathToRandomWorldPoint(1f, heuristicMode);
         }
     }
-
+    // Attack base function
     public void AttackBase()
     {
-
+        // If the enemyBase variable stores a value
         if (enemyBase != null)
         {
             //go close to it and fire
@@ -160,12 +163,12 @@ public class SmartTank : AITank
             {
                 TurretFireAtPoint(enemyBase);
             }
-            else
+            else // If the condition isn't met then follow a random path
             {
                 FollowPathToWorldPoint(enemyBase, 1f, heuristicMode);
             }
         }
-        else
+        else // If earlier condition isn't met thab follow a random path
         {
             //searching
             enemyTank = null;
@@ -181,26 +184,27 @@ public class SmartTank : AITank
         }
 
     }
-
+    // Stop and wait function
     public void Wait()
     {
         t += Time.deltaTime;
         t = 0;
-
+        // If time is greater than 20 follow a random path
         if (t > 20)
         {
             enemyTank = null;
             FollowPathToRandomWorldPoint(1f, heuristicMode);
             t = 0;
         }
+        // If enemyTank isn't null and the enemy tank is in range then fire at the enemy tank
         else if ((enemyTank != null) && (Vector3.Distance(transform.position, enemyTank.transform.position) < 25))
         {
             TurretFireAtPoint(enemyTank);
         }
-        else
+        else // If earlier condition isn't met then stop and make the turret 'patrol' in a 360-degree circle
         {
             TankStop();
-            turretGun.transform.Rotate(0f, 0f, constantSpeed * Time.deltaTime);
+            turretGun.transform.Rotate(1f, 0f, constantSpeed * Time.deltaTime);
         }
     }
 
@@ -214,108 +218,26 @@ public class SmartTank : AITank
     public override void AITankUpdate()
     {
         //Update all currently visible.
-        LowFuel();
+        LowFuel(); // Constantly checks for low fuel because it's in the update function
 
-        enemyTanksFound = VisibleEnemyTanks;
-        consumablesFound = VisibleConsumables;
-        enemyBasesFound = VisibleEnemyBases;
+        enemyTanksFound = VisibleEnemyTanks; // Stores the VisibleEnemyTanks dictionary in the enemyTanksFound variable
+        consumablesFound = VisibleConsumables; // Stores the VisibleConsumables dictionary in the consumablesFound variable
+        enemyBasesFound = VisibleEnemyBases; // Stores the VisibleEnemyBases dictionary in the enemyBasesFound variable
 
+        // Constantly checking to see if an enemy base is found and then stores it
         if (enemyBasesFound.Count > 0 && enemyBasesFound.First().Key != null)
         {
-            //if base if found
+            //if base is found
             enemyBase = enemyBasesFound.First().Key;
         }
-
+        // Constantly checking to see if an enemy tanks is found and then stores it
         if (enemyTanksFound.Count > 0 && enemyTanksFound.First().Key != null)
         {
             enemyTank = enemyTanksFound.First().Key;
         }
 
-    //if low health or ammo, go searching
-    /*if (TankCurrentHealth < 30 || TankCurrentAmmo < 4)
-    {
-        //if there is more than 0 consumables visible
-        if (consumablesFound.Count > 0)
-        {
-            //get the first consumable from the list.
-            consumable = consumablesFound.First().Key;
-            FollowPathToWorldPoint(consumable, 1f, heuristicMode);
-            t += Time.deltaTime;
-            if (t > 10)
-            {
-                GenerateNewRandomWorldPoint();
-                t = 0;
-            }
-        }
-        else
-        {
-            enemyTank = null;
-            consumable = null;
-            enemyBase = null;
-            FollowPathToRandomWorldPoint(1f, heuristicMode);
-        }
+   
     }
-    else
-    {
-        //if there is a enemy tank found
-        if (enemyTanksFound.Count > 0 && enemyTanksFound.First().Key != null)
-        {
-            enemyTank = enemyTanksFound.First().Key;
-            if (enemyTank != null)
-            {
-                //get closer to target, and fire
-                if (Vector3.Distance(transform.position, enemyTank.transform.position) < 25f)
-                {
-                    TurretFireAtPoint(enemyTank);
-                }
-                //else follow
-                else
-                {
-                    FollowPathToWorldPoint(enemyTank, 1f, heuristicMode);
-                }
-            }
-        }
-        else if (consumablesFound.Count > 0)
-        {
-            //if consumables are found, go to it.
-            consumable = consumablesFound.First().Key;
-            FollowPathToWorldPoint(consumable, 1f, heuristicMode);
-        }
-        else if (enemyBasesFound.Count > 0)
-        {
-            //if base if found
-            enemyBase = enemyBasesFound.First().Key;
-            if (enemyBase != null)
-            {
-                //go close to it and fire
-                if (Vector3.Distance(transform.position, enemyBase.transform.position) < 25f)
-                {
-                    TurretFireAtPoint(enemyBase);
-                }
-                else
-                {
-                    FollowPathToWorldPoint(enemyBase, 1f, heuristicMode);
-
-                }
-            }
-        }
-        else
-        {
-            //searching
-            enemyTank = null;
-            consumable = null;
-            enemyBase = null;
-            FollowPathToRandomWorldPoint(1f, heuristicMode);
-            t += Time.deltaTime;
-            if (t > 10)
-            {
-                GenerateNewRandomWorldPoint();
-                t = 0;
-            }
-        }
-
-    }*/
-}
 
     /// <summary>
     ///WARNING, do not use void <c>OnCollisionEnter()</c> function, use this <c>AIOnCollisionEnter()</c> function instead if you want to use OnColiisionEnter function from Monobehaviour.

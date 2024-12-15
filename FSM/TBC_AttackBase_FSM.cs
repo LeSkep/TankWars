@@ -6,11 +6,10 @@ using UnityEngine;
 public class AttackBaseState : BaseState
 {
     private SmartTank smartTank;
-    
     // Start is called before the first frame update
     public AttackBaseState(SmartTank smartTank)
     {
-        this.smartTank = smartTank;
+        this.smartTank = smartTank; // Creating a variable with access to the smartTank class
     }
 
     public override Type StateEnter()
@@ -23,7 +22,7 @@ public class AttackBaseState : BaseState
     {
         return null;
     }
-
+    // Override to the StateUpdate function, if enemybases found returns null then enter the roamstate
     public override Type StateUpdate()
     {
         
@@ -31,7 +30,7 @@ public class AttackBaseState : BaseState
         {
             return typeof(RoamState);
         }
-        else
+        else // If enemybases found returns anything other then null then enter attackbase state
         {
             smartTank.AttackBase();
             return null;

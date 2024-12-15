@@ -9,7 +9,7 @@ public class FleeState : BaseState
 
     public FleeState(SmartTank smartTank)
     {
-        this.smartTank = smartTank;
+        this.smartTank = smartTank; // Creating a variable with access to the smartTank class
     }
 
     public override Type StateEnter()
@@ -21,19 +21,21 @@ public class FleeState : BaseState
     {
         return null;
     }
-
+    // Override to the StateUpdate function
     public override Type StateUpdate()
     {
-
+        // If tank is low fuel then go to wait state
         if (smartTank.lowFuel == true)
         {
             return typeof(WaitState);
         }
+        // If tanks health is less than 50 then call the flee function
         if (smartTank.TankCurrentHealth < 50)
         {
             smartTank.Flee();
             return null;
         }
+        // If no other conditions are met then go to RoamState
         else
         {
             return typeof(RoamState);
