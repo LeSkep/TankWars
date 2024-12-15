@@ -24,18 +24,21 @@ public class FleeState : BaseState
 
     public override Type StateUpdate()
     {
-        if (smartTank.TankCurrentHealth < 50 /*|| smartTank.TankCurrentFuel < 50*/)
+
+        if (smartTank.lowFuel == true)
+        {
+            return typeof(WaitState);
+        }
+        if (smartTank.TankCurrentHealth < 50)
         {
             smartTank.Flee();
             return null;
-        }
-        else if ((smartTank.TankCurrentFuel < 30) /*&& (smartTank.hasWaited != true)*/)
-        {
-            return typeof(WaitState);
         }
         else
         {
             return typeof(RoamState);
         }
+
+        
     }
 }

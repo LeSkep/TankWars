@@ -6,7 +6,7 @@ using UnityEngine;
 public class WaitState : BaseState
 {
     private SmartTank smartTank;
-    float t;
+    float t = 0;
 
     public WaitState(SmartTank smartTank)
     {
@@ -29,10 +29,8 @@ public class WaitState : BaseState
 
        if (t > 20)
        {
-            smartTank.hasWaited = true;
-            return typeof(RoamState);
-            
-        }
+            return typeof(RoamState); 
+       }
        else
        {
             smartTank.Wait();

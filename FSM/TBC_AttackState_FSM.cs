@@ -32,11 +32,15 @@ public class AttackState : BaseState
             time = 0;
             return typeof(RoamState);
         }
-        else if (smartTank.TankCurrentHealth < 50 || smartTank.TankCurrentAmmo < 4 || smartTank.TankCurrentFuel < 50)
+        else if (smartTank.lowFuel == true)
+        {
+            return typeof(WaitState);
+        }
+        else if (smartTank.TankCurrentHealth < 50 || smartTank.TankCurrentAmmo < 4)
         {
             return typeof(FleeState);
         }
-        else
+        else 
         {
             smartTank.AttackTarget();
             return null;

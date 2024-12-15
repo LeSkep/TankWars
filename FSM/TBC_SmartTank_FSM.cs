@@ -33,7 +33,9 @@ public class SmartTank : AITank
 
     private GameObject turretGun;
     public float constantSpeed = 5f;
-    public bool hasWaited = false;
+
+    public bool lowFuel;
+
 
     /*private AITank AITank;
 
@@ -67,6 +69,18 @@ public class SmartTank : AITank
         GetComponent<StateMachine>().SetStates(states);
     }
 
+    public void LowFuel()
+    {
+        if (TankCurrentFuel < 5)
+        {
+            lowFuel = true;
+        }
+        else
+        {
+            lowFuel = false;
+        }
+    }
+
     public void ChaseTarget()
     {
         if (enemyTank != null)
@@ -98,7 +112,7 @@ public class SmartTank : AITank
             GenerateNewRandomWorldPoint();
             t = 0;
         }
-        
+
         if (consumablesFound.Count > 0)
         {
             //get the first consumable from the list.
@@ -149,7 +163,6 @@ public class SmartTank : AITank
             else
             {
                 FollowPathToWorldPoint(enemyBase, 1f, heuristicMode);
-
             }
         }
         else
@@ -166,29 +179,32 @@ public class SmartTank : AITank
                 t = 0;
             }
         }
-        
+
     }
 
     public void Wait()
     {
-       
         t += Time.deltaTime;
-        TankStop();
-        turretGun.transform.Rotate(0f, 0f, constantSpeed * Time.deltaTime);
+        t = 0;
+
         if (t > 20)
         {
-            GenerateNewRandomWorldPoint();
+            enemyTank = null;
+            FollowPathToRandomWorldPoint(1f, heuristicMode);
             t = 0;
+        }
+        else if ((enemyTank != null) && (Vector3.Distance(transform.position, enemyTank.transform.position) < 25))
+        {
+            TurretFireAtPoint(enemyTank);
         }
         else
         {
-            enemyTank = null;
-            consumable = null;
-            enemyBase = null;
-            FollowPathToRandomWorldPoint(1f, heuristicMode);
+            TankStop();
+            turretGun.transform.Rotate(0f, 0f, constantSpeed * Time.deltaTime);
         }
-        
     }
+
+    
 
     /// <summary>
     ///WARNING, do not use void <c>Update()</c> function, use this <c>AITankUpdate()</c> function instead if you want to use Start method from Monobehaviour.
@@ -197,14 +213,14 @@ public class SmartTank : AITank
     /// </summary>
     public override void AITankUpdate()
     {
-    //Update all currently visible.
+        //Update all currently visible.
+        LowFuel();
 
-    
         enemyTanksFound = VisibleEnemyTanks;
         consumablesFound = VisibleConsumables;
         enemyBasesFound = VisibleEnemyBases;
 
-        if (enemyBasesFound.Count > 0)
+        if (enemyBasesFound.Count > 0 && enemyBasesFound.First().Key != null)
         {
             //if base if found
             enemyBase = enemyBasesFound.First().Key;

@@ -34,7 +34,7 @@ public class RoamState : BaseState
         {
             return typeof(AttackBaseState);
         }
-        else if ((smartTank.TankCurrentFuel < 30) /*&& (smartTank.hasWaited == false)*/)
+        else if (smartTank.lowFuel == true)
         {
             return typeof(WaitState);
         }
