@@ -4,11 +4,10 @@ using UnityEngine;
 
 public class Rules 
 {
-    // AddRule function
     public void AddRule(Rule rule)
     {
-        GetRules.Add(rule); // Adds the rule to the GetRules dictionary
+        GetRules.Add(rule);
     }
-    // New dictionary called GetRules
+
     public List<Rule> GetRules { get; } = new List<Rule>();
 }

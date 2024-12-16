@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEngine;
 using static AStar;
 using JetBrains.Annotations;
-using static UnityEditor.PlayerSettings;
 
 /// <summary>
 /// Class <c>DumbTank</c> is an example class used to demonstrate how to use the functions available from the <c>AITank</c> base class. 
@@ -32,18 +31,17 @@ public class SmartTankFSMRBS : AITank
     float t;    /*!< <c>t</c> stores timer value */
     public HeuristicMode heuristicMode; /*!< <c>heuristicMode</c> Which heuristic used for find path. */
 
-    private GameObject turretGun; // Creating a game object variable named turretGun
-    public float constantSpeed = 5f; // Stores a constant speed value for turret rotation speed
+    private GameObject turretGun;
+    public float constantSpeed = 5f;
+    //public bool hasWaited = false;
 
+    public bool lowHealth;
 
-    public bool lowHealth; // Boolean for checking low health
-
-    // New dictionary called facts that stores strings and booleans
     public Dictionary<string, bool> stats = new Dictionary<string, bool>();
-    // New variable called rules with access to the RulesFSMRBS class
     public RulesFSMRBS rules = new RulesFSMRBS();
 
-   
+   // public FleeStateFSMRBS fleeState;
+
     /// <summary>
     ///WARNING, do not use void <c>Start()</c> function, use this <c>AITankStart()</c> function instead if you want to use Start method from Monobehaviour.
     ///Use this function to initialise your tank variables etc.
@@ -51,11 +49,11 @@ public class SmartTankFSMRBS : AITank
     public override void AITankStart()
     {
         //turretGun = transform.Find("Model").transform.Find("Turret").gameObject;
-        InitialiseStats(); // Calls InitialiseStats function to Initialise all the stats
-        InitialiseRules(); // Calls InitialiseRules function to Initialise all the rules
-        InitialiseStateMachine(); // Calls InitialiseStateMachine function to Initialise the state machine
+        InitialiseStats();
+        InitialiseRules();
+        InitialiseStateMachine();
     }
-    // Initialises stats and sets all to false on called
+
     private void InitialiseStats()
     {
         stats.Add("lowHealth", lowHealth);
@@ -66,8 +64,7 @@ public class SmartTankFSMRBS : AITank
         stats.Add("roamState", false);
         stats.Add("attackState", false);
     }
-    // Initialises rules 
-    // Each rule has to antecedents and one consequent, the consequent is only reached if once or both of the antecedents is true based on the Predicate
+
     private void InitialiseRules()
     {
         rules.AddRule(new RuleFSMRBS("attackState", "lowHealth", typeof(FleeStateFSMRBS), RuleFSMRBS.Predicate.And));
@@ -76,10 +73,9 @@ public class SmartTankFSMRBS : AITank
         rules.AddRule(new RuleFSMRBS("roamState", "targetSpotted", typeof(RoamStateFSMRBS), RuleFSMRBS.Predicate.nAnd));
         rules.AddRule(new RuleFSMRBS("chaseState", "targetReached", typeof(AttackStateFSMRBS), RuleFSMRBS.Predicate.And));
     }
-    // Initialises the state machine
+
     private void InitialiseStateMachine()
     {
-        // Creating a dictionary to store the states
         Dictionary<Type, BaseState> states = new Dictionary<Type, BaseState>();
 
         states.Add(typeof(RoamStateFSMRBS), new RoamStateFSMRBS(this));
@@ -89,41 +85,44 @@ public class SmartTankFSMRBS : AITank
         //states.Add(typeof(AttackBaseState), new AttackBaseState(this));
         //states.Add(typeof(WaitState), new WaitState(this));
 
-        GetComponent<StateMachineFSMRBS>().SetStates(states); // Getting a function from the state machine to script to set the states in the dictionary 
+        GetComponent<StateMachineFSMRBS>().SetStates(states);
     }
-    // Chase target function
+
     public void ChaseTarget()
     {
-        if (enemyTank != null) // If enemyTank stores a value
+        if (enemyTank != null)
         {
             //Follow target
             FollowPathToWorldPoint(enemyTank, 1f, heuristicMode);
         }
+        //CheckTargetSpotted();
+        //CheckTargetReached();
     }
-    // Attack target
+
     public void AttackTarget()
     {
-        // fire at target
+            //get closer to target, and fire
         TurretFireAtPoint(enemyTank);
+        
+        //CheckTargetSpotted();
+        //CheckTargetReached();
     }
-    // Tank roam function
+
     public void RandomRoam()
     {
         
         //searching
-        enemyTank = null; // Resets the enemyTank variable
-        consumable = null; // Resets the consumable variable
-        enemyBase = null; // Resets the enemyBase variable
-        // Follow path
+        //enemyTank = null;
+        //consumable = null;
+        enemyBase = null;
         FollowPathToRandomWorldPoint(1f, heuristicMode);
         t += Time.deltaTime;
-        if (t > 10) // If time is greater than 10
+        if (t > 10)
         {
-            // Follow new path
             GenerateNewRandomWorldPoint();
             t = 0;
         }
-        // Look for consumables
+        
         if (consumablesFound.Count > 0)
         {
             //get the first consumable from the list.
@@ -136,11 +135,12 @@ public class SmartTankFSMRBS : AITank
                 t = 0;
             }
         }
+        //CheckTargetSpotted();
+        //CheckTargetReached();
     }
-    // Flee function
+
     public void Flee()
     {
-        // Looks for consumables
         if (consumablesFound.Count > 0)
         {
             //get the first consumable from the list.
@@ -153,13 +153,15 @@ public class SmartTankFSMRBS : AITank
                 t = 0;
             }
         }
-        else // If it can't see any consumables then it generates a new path and follows it
+        else
         {
-            enemyTank = null; // Resets the enemyTank variable
-            consumable = null; // Resets the consumable variable
-            enemyBase = null; // Resets the enemyBase variable
+            enemyTank = null;
+            consumable = null;
+            enemyBase = null;
             FollowPathToRandomWorldPoint(1f, heuristicMode);
         }
+        //CheckTargetSpotted();
+        //CheckTargetReached();
     }
 
     //public void AttackBase()
@@ -218,21 +220,48 @@ public class SmartTankFSMRBS : AITank
     //    CheckTargetReached();
     //}
 
-    // Function to update stats
-    void UpdateStats()
+    void UpdateFacts()
     {
-        if (enemyTank != null) // If enemyTank is not null
+        if (enemyTank != null)
         {
-            // If enemyTank is within a 30 unit range then targetspotted = true, else false
             stats["targetSpotted"] = Vector3.Distance(transform.position, enemyTank.transform.position) < 30f ? true : false;
-            // If enemyTank is within a 25 unit range then targetreached = true, else false
             stats["targetReached"] = Vector3.Distance(transform.position, enemyTank.transform.position) < 25f ? true : false;
         }
+       
 
-        // Checks to see if lowHealth, lowAmmo and lowFuel are true or false 
         stats["lowHealth"] = TankCurrentHealth < 50 ? true : false;
+        //stats["lowAmmo"] = TankCurrentAmmo < 4 ? true : false;
+        //stats["lowFuel"] = TankCurrentFuel < 50 ? true : false;
     }
 
+
+    //public void CheckTargetSpotted()
+    //{
+    //    Debug.Log(stats["targetSpotted"]);
+    //    if ((enemyTank != null) && (Vector3.Distance(transform.position, enemyTank.transform.position) < 30f))
+    //    {
+    //        stats["targetSpotted"] = true;
+    //    }
+    //    else
+    //    {
+    //        stats["targetSpotted"] = false;
+    //    }
+    //
+    //}
+    //
+    //public void CheckTargetReached()
+    //{
+    //
+    //    if ((enemyTank != null) && (Vector3.Distance(transform.position, enemyTank.transform.position) < 25f))
+    //    {
+    //        stats["targetReached"] = true;
+    //    }
+    //    else
+    //    {
+    //        stats["targetReached"] = false;
+    //    }
+    //
+    //}
 
     /// <summary>
     ///WARNING, do not use void <c>Update()</c> function, use this <c>AITankUpdate()</c> function instead if you want to use Start method from Monobehaviour.
@@ -243,26 +272,27 @@ public class SmartTankFSMRBS : AITank
     {
         //Update all currently visible.
         
-        // Constantly calls the update stats funciton to see if they're true or false
-        UpdateStats();
+        UpdateFacts();
 
-        enemyTanksFound = VisibleEnemyTanks; // Stores the VisibleEnemyTanks dictionary in the enemyTanksFound variable   
-        consumablesFound = VisibleConsumables; // Stores the VisibleConsumables dictionary in the consumablesFound variable
-        enemyBasesFound = VisibleEnemyBases; // Stores the VisibleEnemyBases dictionary in the enemyBasesFound variable
+        enemyTanksFound = VisibleEnemyTanks;
+        consumablesFound = VisibleConsumables;
+        enemyBasesFound = VisibleEnemyBases;
 
-        // Constantly checking to see if an enemy tanks is found and then stores it
         if (enemyTanksFound.Count > 0 && enemyTanksFound.First().Key != null)
         {
-            // if tank is found
             enemyTank = enemyTanksFound.First().Key;
         }
 
-        // Constantly checking to see if an enemy base is found and then stores it
+
         if (enemyBasesFound.Count > 0)
         {
-            //if base is found
+            //if base if found
             enemyBase = enemyBasesFound.First().Key;
         }
+
+        
+
+    
     }
 
     /// <summary>

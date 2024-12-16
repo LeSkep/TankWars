@@ -6,31 +6,30 @@ using UnityEngine;
 public class ChaseStateFSMRBS : BaseState
 {
     private SmartTankFSMRBS smartTank;
-    // Start is called before the first frame update
+
     public ChaseStateFSMRBS(SmartTankFSMRBS smartTank)
     {
-        this.smartTank = smartTank; // Creating a variable with access to the smartTank class
+        this.smartTank = smartTank;
     }
 
     public override Type StateEnter()
     {
-        smartTank.stats["chaseState"] = true; // Sets the chaseState stat to true on stateEnter
-
+        smartTank.stats["chaseState"] = true;
 
         return null;
     }
 
     public override Type StateExit()
     {
-        smartTank.stats["chaseState"] = false; // Sets the chaseState stat to false on stateExit
+        smartTank.stats["chaseState"] = false;
+
         return null;
     }
-    // Override to the StateUpdate function
+
     public override Type StateUpdate()
     {
-        smartTank.ChaseTarget(); // Calls chase target
+        smartTank.ChaseTarget();
 
-        // For loop to keep checking the for the next state
         foreach (var item in smartTank.rules.GetRules)
         {
             if (item.CheckRule(smartTank.stats) != null)

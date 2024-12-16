@@ -6,31 +6,30 @@ using UnityEngine;
 public class FleeStateFSMRBS : BaseState
 {
     private SmartTankFSMRBS smartTank;
-    // Start is called before the first frame update
+
     public FleeStateFSMRBS(SmartTankFSMRBS smartTank)
     {
-        this.smartTank = smartTank; // Creating a variable with access to the smartTank class
+        this.smartTank = smartTank;
     }
 
     public override Type StateEnter()
     {
-        smartTank.stats["fleeState"] = true; // Sets the fleeState stat to true on stateEnter
+        smartTank.stats["fleeState"] = true;
 
         return null;
     }
 
     public override Type StateExit()
     {
-        smartTank.stats["fleeState"] = false; // Sets the fleeState stat to true on stateExit
+        smartTank.stats["fleeState"] = false;
 
         return null;
     }
-    // Override to the StateUpdate function
+
     public override Type StateUpdate()
     {
-        smartTank.Flee(); // Calls flee
+        smartTank.Flee();
 
-        // For loop to keep checking the for the next state
         foreach (var item in smartTank.rules.GetRules)
         {
             if (item.CheckRule(smartTank.stats) != null)

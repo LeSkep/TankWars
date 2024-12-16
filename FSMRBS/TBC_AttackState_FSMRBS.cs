@@ -10,12 +10,12 @@ public class AttackStateFSMRBS : BaseState
     // Start is called before the first frame update
     public AttackStateFSMRBS(SmartTankFSMRBS smartTank)
     {
-        this.smartTank = smartTank; // Creating a variable with access to the smartTank class
+        this.smartTank = smartTank;
     }
 
     public override Type StateEnter()
     {
-        smartTank.stats["attackState"] = true; // Sets the attackState stat to true on stateEnter
+        smartTank.stats["attackState"] = true;
 
         return null;
 
@@ -23,33 +23,33 @@ public class AttackStateFSMRBS : BaseState
 
     public override Type StateExit()
     {
-        smartTank.stats["attackState"] = false; // Sets the attackState stat to false on stateExit
+        smartTank.stats["attackState"] = false;
 
         time = 0;
 
         return null;
     }
-    // Override to the StateUpdate function
+
     public override Type StateUpdate()
     {
-        smartTank.AttackTarget(); // Calls the attack target function
+        smartTank.AttackTarget();
 
         time += Time.deltaTime;
 
-        if (time > 1f) // If time is greater than 1
+        if (time > 1f)
         {
             if (smartTank.stats["lowHealth"] == true)
             {
-                return typeof(FleeStateFSMRBS); // lowHealth is true, go to flee state
+                return typeof(FleeStateFSMRBS);
             }
 
             if (smartTank.stats["targetReached"] == true)
             {
-                return typeof(AttackStateFSMRBS); // targetReached is true, go to attack state
+                return typeof(AttackStateFSMRBS);
             }
-            else // If no earlier conditions are met then go to roam state
+            else
             {
-                return typeof(RoamStateFSMRBS); 
+                return typeof(RoamStateFSMRBS);
 
             }
         }
